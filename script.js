@@ -134,32 +134,6 @@ function swapLanguages() {
     }
 }
 
-// Parse SSE (Server-Sent Events) response
-function parseSSEResponse(responseText) {
-    const lines = responseText.split('\n');
-    let fullContent = '';
-    
-    for (const line of lines) {
-        if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6); // Remove 'data: ' prefix
-            if (dataStr === '[DONE]') {
-                break;
-            }
-            try {
-                const data = JSON.parse(dataStr);
-                if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
-                    fullContent += data.choices[0].delta.content;
-                }
-            } catch (e) {
-                // Skip invalid JSON lines
-                continue;
-            }
-        }
-    }
-    
-    return fullContent;
-}
-
 // Translate text
 async function translateText() {
     const text = sourceText.value.trim();
@@ -215,8 +189,10 @@ async function translateText() {
         ${toneInstructions}Provide only the translation without any explanations or additional text.
         Maintain the original formatting as much as possible.`;
         
-        // Add stream: false to request body to avoid SSE responses if possible
+        // Build the request body for our serverless function
         const requestBody = {
+            endpoint: settings.endpoint,
+            apiKey: settings.apiKey,
             model: settings.model,
             messages: [
                 {
@@ -229,61 +205,39 @@ async function translateText() {
                 }
             ],
             temperature: 0.3,
-            max_tokens: 2000,
-            stream: false  // Explicitly request non-streaming response
+            max_tokens: 2000
         };
         
-        const response = await fetch(settings.endpoint, {
+        // Call our serverless function instead of the AI API directly
+        const response = await fetch('/api/translate', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${settings.apiKey}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(requestBody)
         });
         
-        // Get response text first
-        const responseText = await response.text();
+        const data = await response.json();
         
-        let translation = '';
-        
-        // Check if it's a streaming response (SSE format)
-        if (responseText.includes('data: ') && responseText.includes('[DONE]')) {
-            console.log('Detected streaming response, parsing SSE format...');
-            translation = parseSSEResponse(responseText);
-            if (!translation) {
-                throw new Error('Failed to parse streaming response');
-            }
-        } else {
-            // Try to parse as regular JSON
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error('Response was not valid JSON:', responseText);
-                throw new Error('Invalid response from API. Please check your endpoint configuration.');
-            }
-            
-            // Check if response was successful
-            if (!response.ok) {
-                throw new Error(data.error?.message || data.message || `API error: ${response.status}`);
-            }
-            
-            // Check for valid response structure
-            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                console.error('Invalid response structure:', data);
-                throw new Error('Unexpected API response format. Please check your API configuration.');
-            }
-            
-            translation = data.choices[0].message.content.trim();
+        // Check if response was successful
+        if (!response.ok) {
+            throw new Error(data.error || data.message || `API error: ${response.status}`);
         }
+        
+        // Check for valid response structure
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            console.error('Invalid response structure:', data);
+            throw new Error('Unexpected API response format. Please check your API configuration.');
+        }
+        
+        const translation = data.choices[0].message.content.trim();
         
         // Display translation
         translatedText.textContent = translation;
         
     } catch (error) {
         console.error('Translation error:', error);
-        showToast(`Translation failed: ${error.message}`, 'error');
+        showToast(`Translation error: ${error.message}`, 'error');
         translatedText.innerHTML = '<span class="placeholder">Translation failed. Please check your API settings.</span>';
     } finally {
         loadingSpinner.classList.remove('active');

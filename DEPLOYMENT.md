@@ -1,6 +1,13 @@
 # Deployment Guide
 
-Quick guide for deploying QuickTranslate to GitHub and Vercel.
+Quick guide for deploying QuickTranslate to GitHub and Vercel with serverless API support.
+
+## Architecture Overview
+
+QuickTranslate now uses a serverless architecture to avoid CORS issues:
+- **Frontend**: Static HTML/CSS/JS files
+- **Backend**: Serverless function at `/api/translate` that proxies AI API requests
+- **Benefits**: No CORS errors, secure API handling, automatic scaling
 
 ## Step 1: Initialize Git Repository
 
@@ -62,12 +69,23 @@ After deployment, update the "Try it now" link in [`README.md`](README.md:5) wit
 
 Also update the GitHub issues link at the bottom of the README with your repository URL.
 
+## How the CORS Fix Works
+
+The app now uses a serverless function to avoid CORS issues:
+
+1. Frontend sends translation request to `/api/translate` (same domain)
+2. Serverless function receives request with API credentials
+3. Function makes authenticated request to AI API (OpenAI, etc.)
+4. Function returns response to frontend
+5. No CORS errors because requests stay within your domain
+
 ## Configuration Notes
 
-- **No build step needed** - This is a pure static site
+- **Serverless functions included** - `/api/translate.js` handles API proxying
 - **No environment variables needed** - Users provide their own API keys
-- **No server required** - Everything runs in the browser
+- **No build step required** - Static site with serverless functions
 - **Automatic HTTPS** - Vercel provides this by default
+- **CORS-free** - All API calls go through your domain
 
 ## Updating Your Deployment
 
@@ -99,6 +117,12 @@ Vercel will automatically redeploy when you push to the `main` branch.
 - Clear browser cache
 - Check browser console for errors
 - Ensure API endpoints are HTTPS (required for production)
+- Verify the `/api/translate` function is deployed correctly
+
+**Getting "NetworkError when attempting to fetch resource"?**
+- This was the original CORS issue, now fixed with serverless functions
+- Make sure you've deployed the updated code with `/api/translate.js`
+- Check Vercel function logs if the issue persists
 
 ## That's It!
 
