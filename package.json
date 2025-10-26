@@ -1,0 +1,23 @@
+{
+  "name": "quicktranslate",
+  "version": "1.0.0",
+  "description": "A simple, clean, quick AI Translator with Google Translate UI that uses custom OpenAI compatible endpoint/API key.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve .",
+    "build": "echo 'No build step needed for static site'"
+  },
+  "keywords": [
+    "translator",
+    "ai",
+    "openai",
+    "translation",
+    "language"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}
