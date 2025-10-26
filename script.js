@@ -208,20 +208,35 @@ async function translateText() {
             max_tokens: 2000
         };
         
-        // Call our serverless function instead of the AI API directly
-        const response = await fetch('/api/translate', {
+        // Call the API directly
+        const response = await fetch(settings.endpoint, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${settings.apiKey}`
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({
+                model: settings.model,
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemPrompt
+                    },
+                    {
+                        role: 'user',
+                        content: text
+                    }
+                ],
+                temperature: 0.3,
+                max_tokens: 2000
+            })
         });
         
         const data = await response.json();
         
         // Check if response was successful
         if (!response.ok) {
-            throw new Error(data.error || data.message || `API error: ${response.status}`);
+            throw new Error(data.error?.message || data.message || `API error: ${response.status}`);
         }
         
         // Check for valid response structure
