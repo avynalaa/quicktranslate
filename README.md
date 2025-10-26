@@ -85,7 +85,7 @@ Having issues? Check these common solutions:
 - Open browser console (F12) for error details
 
 **Need help?**
-Open an issue on [GitHub](https://github.com/your-username/quicktranslate/issues)
+Open an issue on [GitHub](https://github.com/avynalaa/quicktranslate/issues)
 
 ## Credits
 
