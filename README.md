@@ -2,7 +2,7 @@
 
 A simple, clean, and fast AI translator that gives you complete control over your translation experience. Use any OpenAI-compatible API to translate text between 18 languages with customizable tone and style.
 
-🌐 **[Try it now](#)** *(Add your deployed URL here)*
+🌐 **[Try it now](https://quicktranslate-mu.vercel.app/)**
 
 ## Why QuickTranslate?
 
